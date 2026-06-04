@@ -1,0 +1,6 @@
+{
+  "name": "AceNext AI Learning Platform",
+  "description": "An AI-powered learning, practicing and placement ecosystem featuring interactive LMS, AI Tutor, Code Playground, Assessments, Resume Builder, Mock Interviews and Job Portal.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
