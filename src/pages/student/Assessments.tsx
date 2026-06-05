@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ListChecks, Flame, HelpCircle, RefreshCw, Zap, Check, AlertTriangle, Sparkles } from "lucide-react";
-import { QuizQuestion, UserProfile } from "../types";
+import { QuizQuestion, UserProfile } from "../../types";
 
 interface AssessmentsProps {
   initialQuizzes: QuizQuestion[];
@@ -15,6 +15,10 @@ export default function Assessments({ initialQuizzes, profile, focusMode, onTrac
   const [isSubmitted, setIsSubmitted] = useState<{ [qId: string]: boolean }>({});
   const [customTopic, setCustomTopic] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  useEffect(() => {
+    setQuizzes(initialQuizzes);
+  }, [initialQuizzes]);
 
   const handleSelectOption = (quizId: string, optIdx: number) => {
     if (isSubmitted[quizId]) return;

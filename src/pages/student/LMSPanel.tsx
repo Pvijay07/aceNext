@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Play, FileText, CheckCircle, Brain, RefreshCw, PenTool, CheckCircle2 } from "lucide-react";
-import { Course, UserProfile } from "../types";
+import { Course, UserProfile } from "../../types";
 
 interface LMSPanelProps {
   courses: Course[];

@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Check, Lock, Play, Flame, Trophy, ChevronRight, BookOpen, Zap, Award, ArrowRight, Compass } from "lucide-react";
-import { UserProfile, Course, Lesson } from "../types";
+import { UserProfile, Course, Lesson } from "../../types";
+import LiveClassesList from "./LiveClassesList";
+import AssignmentsList from "./AssignmentsList";
 
 interface SyllabusPathwaysProps {
   profile: UserProfile;
@@ -9,6 +11,8 @@ interface SyllabusPathwaysProps {
 }
 
 export default function SyllabusPathways({ profile, courses, setActiveTab }: SyllabusPathwaysProps) {
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
   // Let's lay out the overall sequence of courses
   // Course 1 (c1) -> Course 2 (c2) -> Course 3 (c3)
   
@@ -167,9 +171,12 @@ export default function SyllabusPathways({ profile, courses, setActiveTab }: Syl
                         </span>
                       )}
                     </div>
-                    <h5 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    <button 
+                      onClick={() => setSelectedCourse(course)}
+                      className="text-left font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors"
+                    >
                       {course.title}
-                    </h5>
+                    </button>
                     <p className="text-xs text-slate-500 leading-normal font-normal">
                       {course.description}
                     </p>
@@ -255,6 +262,13 @@ export default function SyllabusPathways({ profile, courses, setActiveTab }: Syl
           );
         })}
       </div>
+
+      {selectedCourse && (
+        <>
+          <LiveClassesList courseId={selectedCourse.id} />
+          <AssignmentsList courseId={selectedCourse.id} />
+        </>
+      )}
     </div>
   );
 }

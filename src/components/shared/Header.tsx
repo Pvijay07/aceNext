@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BookOpen, Trophy, Sparkles, User, BrainCircuit, Clock, Timer, X, Award, Globe, ChevronDown, Eye } from "lucide-react";
-import { UserProfile } from "../types";
+import { UserProfile } from "../../types";
 
 interface HeaderProps {
   profile: UserProfile;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  role: string;
-  setRole: (role: "student" | "admin") => void;
   focusMode: boolean;
   setFocusMode: (val: boolean) => void;
+  onLogout: () => void;
 }
 
 type Language = "en" | "es" | "fr" | "de";
@@ -108,7 +107,7 @@ const translations: Record<Language, Record<string, string>> = {
   }
 };
 
-export default function Header({ profile, activeTab, setActiveTab, role, setRole }: HeaderProps) {
+export default function Header({ profile, activeTab, setActiveTab, focusMode, setFocusMode, onLogout }: HeaderProps) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem("selected_platform_language") as Language;
     return (saved && translations[saved]) ? saved : "en";
@@ -302,7 +301,7 @@ export default function Header({ profile, activeTab, setActiveTab, role, setRole
           </div>
 
           <button
-            onClick={() => setFocusMode(true)}
+            onClick={() => setFocusMode(!focusMode)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100/50 hover:text-indigo-900 transition shadow-sm font-sans"
             title="Slink into minimalist deep-focus workspace"
           >
@@ -310,32 +309,14 @@ export default function Header({ profile, activeTab, setActiveTab, role, setRole
             <span className="hidden sm:inline">Focus Mode</span>
           </button>
 
-          <div className="flex rounded-lg bg-slate-100 p-0.5 text-xs">
-            <button
-              onClick={() => setRole("student")}
-              className={`rounded-md px-3 py-1 font-medium transition ${
-                role === "student" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              {t.studentView}
-            </button>
-            <button
-              onClick={() => setRole("admin")}
-              className={`rounded-md px-3 py-1 font-medium transition ${
-                role === "admin" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              {t.adminView}
-            </button>
-          </div>
-
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 border-l border-slate-200 pl-4 ml-2">
             <div className="hidden sm:block text-right">
               <p className="text-xs font-semibold text-slate-900">{profile.name}</p>
-              <p className="text-[10px] text-slate-500 uppercase">{profile.role}</p>
+              <p className="text-[10px] text-slate-500 uppercase font-bold">{profile.role}</p>
             </div>
-            <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm">
-              <User className="h-4 w-4 text-blue-700" />
+            <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm cursor-pointer hover:bg-red-100 transition group" onClick={onLogout} title="Logout">
+              <User className="h-4 w-4 text-blue-700 group-hover:hidden" />
+              <X className="h-4 w-4 text-red-600 hidden group-hover:block" />
             </div>
           </div>
         </div>

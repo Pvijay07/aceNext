@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileText, Sparkles, RefreshCw, Star, HelpCircle, Check, BookOpen, Printer, Download } from "lucide-react";
-import { UserProfile } from "../types";
+import { UserProfile } from "../../types";
 
 interface ResumeSpecsProps {
   profile: UserProfile;

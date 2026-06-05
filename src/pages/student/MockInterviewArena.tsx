@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Sparkles, MessageSquare, Mic, MicOff, RefreshCw, Star, CheckCircle, ShieldAlert, Award } from "lucide-react";
-import { UserProfile } from "../types";
-import TechFlashcards from "./TechFlashcards";
+import { UserProfile } from "../../types";
+import TechFlashcards from "../../components/shared/TechFlashcards";
+import { api } from "../../api";
 
 interface ChatTurn {
   role: "user" | "model";
@@ -45,18 +46,13 @@ export default function MockInterviewArena({ profile, focusMode, onTrackXp }: Mo
   const handleStart = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/interview/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          role,
-          level,
-          mode,
-          history: [],
-          currentAnswer: "Hi, I am ready to start my interview."
-        })
+      const data = await api.post("/interview/generate", {
+        role,
+        level,
+        mode,
+        history: [],
+        currentAnswer: "Hi, I am ready to start my interview."
       });
-      const data = await response.json();
       setCurrentQuestion(data.nextQuestion);
       setHistory([{ role: "model", content: data.nextQuestion }]);
       setIsStarted(true);
@@ -86,18 +82,13 @@ export default function MockInterviewArena({ profile, focusMode, onTrackXp }: Mo
     setUserAnswer("");
 
     try {
-      const response = await fetch("/api/interview/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          role,
-          level,
-          mode,
-          history: updatedHistory,
-          currentAnswer: textSaved
-        })
+      const data = await api.post("/interview/generate", {
+        role,
+        level,
+        mode,
+        history: updatedHistory,
+        currentAnswer: textSaved
       });
-      const data = await response.json();
       setCurrentQuestion(data.nextQuestion);
       setHistory((prev) => [...prev, { role: "model", content: data.nextQuestion }]);
 

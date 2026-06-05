@@ -1,52 +1,61 @@
-import { useState, useEffect, useRef } from "react";
-import Header from "./components/Header";
-import Dashboard from "./components/Dashboard";
-import LMSPanel from "./components/LMSPanel";
-import TutorBot from "./components/TutorBot";
-import CodingArena from "./components/CodingArena";
-import Assessments from "./components/Assessments";
-import ProjectLabsPanel from "./components/ProjectLabsPanel";
-import ResumeSpecs from "./components/ResumeSpecs";
-import MockInterviewArena from "./components/MockInterviewArena";
-import JobPortal from "./components/JobPortal";
-import AdminPanel from "./components/AdminPanel";
-import ConfettiCelebration from "./components/ConfettiCelebration";
-import { Clock, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
+// Shared
+import ConfettiCelebration from "./components/shared/ConfettiCelebration";
+import AuthScreen from "./pages/auth/AuthScreen";
+import DashboardLayout from "./layouts/DashboardLayout";
+
+// Admin
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminStudents from "./pages/admin/AdminStudents";
+import AdminModules from "./pages/admin/AdminModules";
+import AdminBatches from "./pages/admin/AdminBatches";
+import AdminFaculty from "./pages/admin/AdminFaculty";
+import AdminPackages from "./pages/admin/AdminPackages";
+
+// Faculty
+import FacultyOverview from "./pages/faculty/FacultyOverview";
+import FacultyLessons from "./pages/faculty/FacultyLessons";
+import FacultyEvaluation from "./pages/faculty/FacultyEvaluation";
+import FacultyZoom from "./pages/faculty/FacultyZoom";
+
+// Student
+import Dashboard from "./pages/student/Dashboard";
+import LMSPanel from "./pages/student/LMSPanel";
+import TutorBot from "./pages/student/TutorBot";
+import CodingArena from "./pages/student/CodingArena";
+import Assessments from "./pages/student/Assessments";
+import ProjectLabsPanel from "./pages/student/ProjectLabsPanel";
+import ResumeSpecs from "./pages/student/ResumeSpecs";
+import MockInterviewArena from "./pages/student/MockInterviewArena";
+import JobPortal from "./pages/student/JobPortal";
+
+// Data & Types
 import { initialCourses, mockChallenges, initialQuizzes, projectLabs, mockJobsList } from "./data";
-import { UserProfile, Course } from "./types";
+import { UserProfile, Course, QuizQuestion, JobItem } from "./types";
+import { api } from "./api";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
-  const [role, setRole] = useState<"student" | "admin">("student");
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
+  const [isInitializing, setIsInitializing] = useState(!!localStorage.getItem("access_token"));
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
   const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const [quizzes, setQuizzes] = useState<QuizQuestion[]>(initialQuizzes);
+  const [jobsList, setJobsList] = useState<JobItem[]>(mockJobsList);
   
   // Minimalist Focus Mode variables
   const [focusMode, setFocusMode] = useState<boolean>(() => {
     return localStorage.getItem("platform_focus_mode") === "true";
   });
-  const [focusSeconds, setFocusSeconds] = useState<number>(0);
-
-  useEffect(() => {
-    let interval: any = null;
-    if (focusMode) {
-      interval = setInterval(() => {
-        setFocusSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      setFocusSeconds(0);
-    }
-    return () => clearInterval(interval);
-  }, [focusMode]);
+  
+  const navigate = useNavigate();
 
   const handleToggleFocusMode = (val: boolean) => {
     setFocusMode(val);
     localStorage.setItem("platform_focus_mode", String(val));
-    
-    // Switch to active learning tab if currently on a dashboard/jobs
-    if (val && (activeTab === "dashboard" || activeTab === "jobs")) {
-      setActiveTab("lms");
-    }
 
     // Trigger sweet visual celebration response
     window.dispatchEvent(
@@ -62,348 +71,232 @@ export default function App() {
     );
   };
 
-  const formatFocusDuration = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsInitializing(true);
+      fetchProfile();
+    } else {
+      setIsInitializing(false);
+    }
+  }, [isAuthenticated]);
 
-  // Sync profile metadata with severe db server endpoint
-  const [profile, setProfile] = useState<UserProfile>({
-    id: "student-1",
-    name: "Vijay Kumar",
-    email: "vijay.infasta@gmail.com",
-    role: "student",
-    xp: 1450,
-    streak: 5,
-    badges: [
-      { id: "b1", title: "Swift Coder", icon: "Zap", desc: "Completed 5 coding problems correctly", color: "text-amber-500 bg-amber-50" },
-      { id: "b2", title: "Problem Solver", icon: "Award", desc: "First perfect assessment score", color: "text-blue-500 bg-blue-50" },
-      { id: "b3", title: "Curious Mind", icon: "BookOpen", desc: "Asked 10 questions to the AI Tutor", color: "text-emerald-500 bg-emerald-50" }
-    ],
-    completedLessons: ["l1", "l2"],
-    completedLabs: [],
-    completedQuizzes: [],
-    jobApplications: [
-      { id: "app-1", company: "Google", role: "Frontend Developer Intern", status: "Applied", date: "2026-06-01" },
-      { id: "app-2", company: "Stripe", role: "Junior Software Engineer", status: "Shortlisted", date: "2026-06-03" }
-    ]
-  });
+  useEffect(() => {
+    const handleAuthError = () => {
+      handleLogout();
+    };
+    window.addEventListener("auth_error", handleAuthError);
+    return () => window.removeEventListener("auth_error", handleAuthError);
+  }, []);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("/api/auth/profile");
-      const data = await response.json();
+      const data = await api.get("/user");
       if (data && data.name) {
-        setProfile(data);
-      }
-    } catch (e) {
-      console.warn("Express server profile fetching offline, using state-backed mock engine.", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  // Celebrate newly unlocked badges automatically
-  const prevBadgesLength = useRef<number>(profile.badges.length);
-  useEffect(() => {
-    if (profile.badges.length > prevBadgesLength.current) {
-      const newlyAddedBadge = profile.badges[profile.badges.length - 1];
-      if (newlyAddedBadge) {
-        window.dispatchEvent(
-          new CustomEvent("celebrate_achievement", {
-            detail: {
-              title: `Badge Unlocked: ${newlyAddedBadge.title}! 🏆`,
-              subtitle: newlyAddedBadge.desc,
-              type: "badge",
-            },
-          })
-        );
-      }
-    }
-    prevBadgesLength.current = profile.badges.length;
-  }, [profile.badges]);
-
-  const handleTrackProgress = async (lessonId?: string, quizId?: string, score?: number, labId?: string, xpGained?: number) => {
-    // 1. Instantly update UI State eagerly
-    setProfile((prev) => {
-      const updatedLessons = lessonId && !prev.completedLessons.includes(lessonId) 
-        ? [...prev.completedLessons, lessonId] 
-        : prev.completedLessons;
-
-      let updatedQuizzes = prev.completedQuizzes;
-      if (quizId && score !== undefined) {
-        const idx = prev.completedQuizzes.findIndex(q => q.id === quizId);
-        if (idx >= 0) {
-          const clone = [...prev.completedQuizzes];
-          clone[idx].score = Math.max(clone[idx].score, score);
-          updatedQuizzes = clone;
-        } else {
-          updatedQuizzes = [...prev.completedQuizzes, { id: quizId, score }];
-        }
-      }
-
-      const updatedLabs = labId && !prev.completedLabs.includes(labId) 
-        ? [...prev.completedLabs, labId] 
-        : prev.completedLabs;
-
-      const updatedXp = prev.xp + (xpGained || 0);
-
-      const updatedBadges = [...prev.badges];
-      if (updatedXp >= 1800 && !updatedBadges.some(b => b.id === "b4")) {
-        updatedBadges.push({
-          id: "b4",
-          title: "Elite Scholar",
-          icon: "ShieldAlert",
-          desc: "Exceeded 1,800 total lifetime study experience points",
-          color: "text-purple-500 bg-purple-50"
+        setProfile({
+          id: data.id.toString(),
+          name: data.name,
+          email: data.email,
+          role: typeof data.role === 'string' ? data.role.toLowerCase() : (data.role?.name?.toLowerCase() || "student"),
+          xp: data.xp || 0,
+          streak: data.profile?.streak || 0,
+          badges: [],
+          completedLessons: [],
+          completedLabs: [],
+          completedQuizzes: [],
+          jobApplications: []
         });
       }
-
-      return {
-        ...prev,
-        completedLessons: updatedLessons,
-        completedQuizzes: updatedQuizzes,
-        completedLabs: updatedLabs,
-        xp: updatedXp,
-        badges: updatedBadges
-      };
-    });
-
-    // 2. Synchronize with stable DB Server Endpoint
-    try {
-      const response = await fetch("/api/student/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId, quizId, score, labId, xpGained })
-      });
-      const data = await response.json();
-      if (data && data.profile) {
-        setProfile(data.profile);
-      }
-    } catch (e) {
-      console.error("Local sync success only. Express API not yet completed.", e);
+    } catch (err) {
+      console.error(err);
+      handleLogout();
+    } finally {
+      setIsInitializing(false);
     }
   };
 
-  const handleApplyJob = async (company: string, roleTitle: string) => {
-    // 1. update state
-    const newApp = {
-      id: `app-${Date.now()}`,
-      company,
-      role: roleTitle,
-      status: "Applied",
-      date: new Date().toISOString().split('T')[0]
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsAuthenticated(false);
+    setProfile(null);
+    setIsInitializing(false);
+    navigate("/login");
+  };
 
-    setProfile((prev) => ({
-      ...prev,
-      jobApplications: [newApp, ...prev.jobApplications]
-    }));
-
-    // 2. sync with server
+  const fetchCourses = async () => {
     try {
-      const response = await fetch("/api/student/apply-job", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company, role: roleTitle })
-      });
-      const data = await response.json();
-      if (data && data.profile) {
-        setProfile(data.profile);
+      const data = await api.get("/courses");
+      if (data && data.length > 0) {
+        setCourses(data);
       }
+    } catch (e) {
+      console.warn("Could not fetch courses from backend.", e);
+    }
+  };
+
+  const fetchQuizzes = async () => {
+    try {
+      const data = await api.get('/assessments');
+      if (Array.isArray(data) && data.length > 0) {
+        const flattened: QuizQuestion[] = [];
+        data.forEach((assessment: any) => {
+            if (assessment.questions) {
+                assessment.questions.forEach((q: any) => {
+                    const optionsText = q.options.map((o: any) => o.option_text);
+                    const correctIndex = q.options.findIndex((o: any) => o.is_correct);
+                    flattened.push({
+                        id: String(q.id),
+                        question: q.content,
+                        options: optionsText,
+                        answer: correctIndex >= 0 ? correctIndex : 0,
+                        explanation: q.options[correctIndex]?.explanation || "Check documentation for more info."
+                    });
+                });
+            }
+        });
+        if (flattened.length > 0) {
+            setQuizzes(flattened);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch quizzes from backend.", e);
+    }
+  };
+
+  const fetchJobs = async () => {
+    try {
+      const data = await api.get('/jobs');
+      if (Array.isArray(data) && data.length > 0) {
+        setJobsList(data.map((j: any) => ({
+            ...j,
+            id: j.id.toString(),
+            requirements: j.requirements || []
+        })));
+      }
+    } catch(e) {
+        console.warn("Could not fetch jobs from backend.", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCourses();
+      fetchQuizzes();
+      fetchJobs();
+    }
+  }, [isAuthenticated]);
+
+  const handleTrackProgress = async (lessonId?: string, quizId?: string, score?: number, labId?: string, xpGained?: number) => {
+    try {
+      await api.post("/student/progress", { lessonId, quizId, score, labId, xpGained });
+      await fetchProfile();
+    } catch (e) {
+      console.error("Local sync success only.", e);
+    }
+  };
+
+  const handleApplyJob = async (jobId: string) => {
+    try {
+      await api.post(`/jobs/${jobId}/apply`, {});
+      await fetchProfile();
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleUpdateJobStatus = async (jobId: string, status: string) => {
-    setProfile((prev) => {
-      const cloneApps = prev.jobApplications.map((app) => 
-        app.id === jobId ? { ...app, status } : app
-      );
-      return {
-        ...prev,
-        jobApplications: cloneApps
-      };
-    });
-
+  const handleUpdateJobStatus = async (appId: string, status: string) => {
     try {
-      const response = await fetch("/api/student/update-job", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, status })
-      });
-      const data = await response.json();
-      if (data && data.profile) {
-        setProfile(data.profile);
-      }
+      await api.put(`/applications/${appId}/status`, { status });
+      await fetchProfile();
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleAddCourse = (newCourse: Course) => {
-    setCourses((prev) => [newCourse, ...prev]);
-  };
+  // Placeholder module for unbuilt student features
+  const PlaceholderStudentModule = ({ title, desc }: any) => (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white rounded-2xl border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+      <p className="text-slate-500 max-w-md text-center mt-2">{desc}</p>
+    </div>
+  );
 
-  const renderActiveTabContent = () => {
-    if (role === "admin") {
-      return <AdminPanel courses={courses} onAddCourse={handleAddCourse} />;
-    }
+  const PlaceholderFacultyModule = ({ title, desc }: any) => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white rounded-2xl border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+      <p className="text-slate-500 max-w-md text-center mt-2">{desc}</p>
+      <button className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 transition shadow-sm">
+        Coming Soon
+      </button>
+    </div>
+  );
 
-    switch (activeTab) {
-      case "dashboard":
-        return (
-          <Dashboard
-            profile={profile}
-            courses={courses}
-            setActiveTab={setActiveTab}
-            onTrackXp={(xpVal) => handleTrackProgress(undefined, undefined, undefined, undefined, xpVal)}
-          />
-        );
-      case "lms":
-        return (
-          <LMSPanel
-            courses={courses}
-            profile={profile}
-            focusMode={focusMode}
-            onTrackProgress={(lesId, xpVal) => handleTrackProgress(lesId, undefined, undefined, undefined, xpVal)}
-          />
-        );
-      case "tutor":
-        return <TutorBot profile={profile} courses={courses} focusMode={focusMode} onTrackXp={(xpVal) => handleTrackProgress(undefined, undefined, undefined, undefined, xpVal)} />;
-      case "coding":
-        return (
-          <CodingArena
-            challenges={mockChallenges}
-            profile={profile}
-            focusMode={focusMode}
-            onTrackProgress={(chalId, xpVal) => handleTrackProgress(undefined, undefined, undefined, chalId, xpVal)}
-          />
-        );
-      case "quizzes":
-        return (
-          <Assessments
-            initialQuizzes={initialQuizzes}
-            profile={profile}
-            focusMode={focusMode}
-            onTrackProgress={(quizId, scoreVal, xpVal) => handleTrackProgress(undefined, quizId, scoreVal, undefined, xpVal)}
-          />
-        );
-      case "labs":
-        return (
-          <ProjectLabsPanel
-            labs={projectLabs}
-            profile={profile}
-            focusMode={focusMode}
-            onTrackProgress={(labId, xpVal) => handleTrackProgress(undefined, undefined, undefined, labId, xpVal)}
-          />
-        );
-      case "resume":
-        return <ResumeSpecs profile={profile} focusMode={focusMode} onTrackXp={(xpVal) => handleTrackProgress(undefined, undefined, undefined, undefined, xpVal)} />;
-      case "interview":
-        return <MockInterviewArena profile={profile} focusMode={focusMode} onTrackXp={(xpVal) => handleTrackProgress(undefined, undefined, undefined, undefined, xpVal)} />;
-      case "jobs":
-        return (
-          <JobPortal
-            jobs={mockJobsList}
-            profile={profile}
-            onApply={handleApplyJob}
-            onUpdateStatus={handleUpdateJobStatus}
-          />
-        );
-      default:
-        return (
-          <Dashboard
-            profile={profile}
-            courses={courses}
-            setActiveTab={setActiveTab}
-            onTrackXp={(xpVal) => handleTrackProgress(undefined, undefined, undefined, undefined, xpVal)}
-          />
-        );
-    }
-  };
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !profile) {
+    return (
+      <Routes>
+        <Route path="*" element={<AuthScreen onSuccess={() => setIsAuthenticated(true)} />} />
+      </Routes>
+    );
+  }
+
+  // Redirect to respective dashboard based on role
+  const getRoleBasePath = () => `/${profile.role}`;
 
   return (
-    <div className="min-h-screen bg-slate-50/30 flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900 leading-normal text-slate-800">
-      {/* Confetti Celebration Particle Layer & Toast */}
+    <>
       <ConfettiCelebration />
+      <Routes>
+        <Route path="/" element={<Navigate to={`${getRoleBasePath()}/dashboard`} replace />} />
+        <Route path="/login" element={<Navigate to={`${getRoleBasePath()}/dashboard`} replace />} />
 
-      {/* Minimalism Focus Mode Sticky Top Bar */}
-      {focusMode ? (
-        <div id="zen-focus-bar" className="sticky top-0 z-50 w-full border-b border-indigo-950/20 bg-indigo-950 text-white shadow-lg shadow-indigo-950/10">
-          <div className="mx-auto flex max-w-7xl h-14 items-center justify-between px-4 sm:px-6">
-            <div className="flex items-center space-x-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600/90 text-white text-sm shadow-inner animate-pulse">
-                🧘
-              </span>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2.5">
-                <h2 className="text-xs font-black tracking-widest text-indigo-200 uppercase font-mono">
-                  AceNext Zen Focus
-                </h2>
-                <span className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  Deep-Focus Session
-                </span>
-              </div>
-            </div>
+        {/* Admin Routes */}
+        <Route path="/admin" element={profile.role === "admin" ? <DashboardLayout role="admin" profile={profile} onLogout={handleLogout} /> : <Navigate to={getRoleBasePath()} />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="courses" element={<AdminCourses />} />
+          <Route path="students" element={<AdminStudents />} />
+          <Route path="modules" element={<AdminModules />} />
+          <Route path="batches" element={<AdminBatches />} />
+          <Route path="faculty" element={<AdminFaculty />} />
+          <Route path="packages" element={<AdminPackages />} />
+        </Route>
 
-            {/* Current Lesson/Module Details */}
-            <div className="hidden md:flex items-center space-x-2 text-xs font-semibold text-indigo-200">
-              <span className="text-[9px] tracking-wider text-indigo-400 font-mono uppercase bg-indigo-900/60 px-2 py-1 rounded">
-                Active Zone:
-              </span>
-              <span className="text-white capitalize">
-                {activeTab === "lms" ? "LMS Lessons" : activeTab === "tutor" ? "AI Tutor Bot" : activeTab === "coding" ? "Coding Arena Playground" : activeTab === "quizzes" ? "Syllabus Assessments" : activeTab === "labs" ? "Project Simulation Labs" : activeTab === "resume" ? "AI Resume Builder" : activeTab === "interview" ? "Mock Interview Arena" : activeTab}
-              </span>
-            </div>
+        {/* Faculty Routes */}
+        <Route path="/faculty" element={profile.role === "faculty" ? <DashboardLayout role="faculty" profile={profile} onLogout={handleLogout} /> : <Navigate to={getRoleBasePath()} />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<FacultyOverview />} />
+          <Route path="lessons" element={<FacultyLessons />} />
+          <Route path="practicals" element={<FacultyEvaluation />} />
+          <Route path="zoom" element={<FacultyZoom />} />
+          <Route path="classes" element={<FacultyZoom />} />
+          <Route path="attendance" element={<PlaceholderFacultyModule title="Student Attendance" desc="Mark daily attendance." />} />
+          <Route path="students" element={<PlaceholderFacultyModule title="My Students" desc="Track progress." />} />
+          <Route path="mock-interviews" element={<PlaceholderFacultyModule title="Mock Interviews" desc="Schedule interviews." />} />
+        </Route>
 
-            {/* Session Stats, Timer and End Action */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-900/60 border border-indigo-800 text-xs font-bold font-mono">
-                <Clock className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
-                <span className="text-emerald-400 font-black">{formatFocusDuration(focusSeconds)}</span>
-              </div>
-              
-              <button
-                type="button"
-                onClick={() => handleToggleFocusMode(false)}
-                className="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 border border-rose-500 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-lg text-xs tracking-wide transition flex items-center gap-1 cursor-pointer shadow-md shadow-rose-600/10"
-                title="Exit distraction-free workspace"
-              >
-                <span>Exit Focus</span>
-                <X className="h-3 w-3 stroke-[2.5]" />
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* App Header */
-        <Header
-          profile={profile}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          role={role}
-          setRole={setRole}
-          focusMode={focusMode}
-          setFocusMode={handleToggleFocusMode}
-        />
-      )}
-
-      {/* Main Content Area */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-8">
-        {renderActiveTabContent()}
-      </main>
-
-      {/* Footer */}
-      {!focusMode && (
-        <footer className="w-full bg-white border-t border-slate-100 py-6 text-center text-[11px] text-slate-400 font-medium">
-          <p>© 2026 AceNext Learning Systems Inc. All rights reserved. Made securely behind sandboxed cloud gateways.</p>
-        </footer>
-      )}
-    </div>
+        {/* Student Routes */}
+        <Route path="/student" element={profile.role === "student" ? <DashboardLayout role="student" profile={profile} onLogout={handleLogout} /> : <Navigate to={getRoleBasePath()} />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard profile={profile} courses={courses} setActiveTab={(t) => navigate(`/student/${t}`)} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
+          <Route path="lms" element={<LMSPanel profile={profile} courses={courses} focusMode={focusMode} onTrackProgress={(les, xp) => handleTrackProgress(les, undefined, undefined, undefined, xp)} setActiveTab={(t) => navigate(`/student/${t}`)} />} />
+          <Route path="classes" element={<PlaceholderStudentModule title="Live Classes" desc="Your scheduled Zoom and Google Meet sessions will appear here." />} />
+          <Route path="recordings" element={<PlaceholderStudentModule title="Class Recordings" desc="Access previous lecture recordings and transcripts." />} />
+          <Route path="tutor" element={<TutorBot profile={profile} courses={courses} focusMode={focusMode} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
+          <Route path="coding" element={<CodingArena profile={profile} challenges={mockChallenges} focusMode={focusMode} onTrackProgress={(cId, xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
+          <Route path="quizzes" element={<Assessments initialQuizzes={quizzes} profile={profile} focusMode={focusMode} onTrackProgress={(q, s, x) => handleTrackProgress(undefined, q, s, undefined, x)} />} />
+          <Route path="labs" element={<ProjectLabsPanel profile={profile} labs={projectLabs} focusMode={focusMode} onTrackProgress={(l, x) => handleTrackProgress(undefined, undefined, undefined, l, x)} />} />
+          <Route path="resume" element={<ResumeSpecs profile={profile} focusMode={focusMode} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
+          <Route path="interview" element={<MockInterviewArena profile={profile} focusMode={focusMode} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
+          <Route path="jobs" element={<JobPortal profile={profile} jobs={jobsList} onApply={handleApplyJob} onUpdateStatus={handleUpdateJobStatus} />} />
+        </Route>
+      </Routes>
+    </>
   );
 }

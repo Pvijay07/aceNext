@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FolderGit2, Sparkles, RefreshCw, Star, CheckSquare, Target, Github, AlertCircle } from "lucide-react";
-import { ProjectLab, UserProfile } from "../types";
+import { ProjectLab, UserProfile } from "../../types";
 
 interface ProjectLabsPanelProps {
   labs: ProjectLab[];
@@ -9,8 +9,8 @@ interface ProjectLabsPanelProps {
   onTrackProgress: (labId: string, xpGained: number) => void;
 }
 
-export default function ProjectLabsPanel({ labs, profile, focusMode, onTrackProgress }: ProjectLabsPanelProps) {
-  const [selectedLab, setSelectedLab] = useState<ProjectLab>(labs[0]);
+export default function ProjectLabsPanel({ labs = [], profile, focusMode, onTrackProgress }: ProjectLabsPanelProps) {
+  const [selectedLab, setSelectedLab] = useState<ProjectLab | null>(labs && labs.length > 0 ? labs[0] : null);
   const [gitUrl, setGitUrl] = useState<string>("");
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [reviewResult, setReviewResult] = useState<string>("");
@@ -50,8 +50,16 @@ export default function ProjectLabsPanel({ labs, profile, focusMode, onTrackProg
     }
   };
 
+  if (!selectedLab || labs.length === 0) {
+    return (
+      <div className="p-8 text-center text-slate-500">
+        No project labs available at the moment.
+      </div>
+    );
+  }
+
   return (
-    <div id="project-labs-view" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div id="project-labs-view" className={`grid grid-cols-1 ${focusMode ? 'lg:grid-cols-1' : 'lg:grid-cols-12'} gap-6`}>
       {/* 1. Left Catalog sidebar */}
       {!focusMode && (
         <div className="lg:col-span-3 space-y-4">

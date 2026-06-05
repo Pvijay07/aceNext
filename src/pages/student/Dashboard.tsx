@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { ArrowUpRight, Award, Flame, GraduationCap, Zap, CheckCircle2, ChevronRight, Check, Sparkles, BookOpen, Code, Trophy, BarChart2, Calendar, Clock, Briefcase, AlertCircle, CheckSquare } from "lucide-react";
-import { UserProfile, Course } from "../types";
-import { projectLabs, initialQuizzes } from "../data";
+import { UserProfile, Course } from "../../types";
+import { projectLabs, initialQuizzes } from "../../data";
 import DailyGoalTracker from "./DailyGoalTracker";
 import StudyCalendar from "./StudyCalendar";
 import SyllabusPathways from "./SyllabusPathways";
-import QuickPoll from "./QuickPoll";
+import QuickPoll from "../../components/shared/QuickPoll";
 import SmartPlanner from "./SmartPlanner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 

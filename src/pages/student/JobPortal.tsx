@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Briefcase, MapPin, DollarSign, UserCheck, Flame, Send, CheckCircle2 } from "lucide-react";
-import { JobItem, UserProfile } from "../types";
+import { JobItem, UserProfile } from "../../types";
 
 interface JobPortalProps {
   jobs: JobItem[];
   profile: UserProfile;
-  onApply: (company: string, role: string) => void;
-  onUpdateStatus: (jobId: string, status: string) => void;
+  onApply: (jobId: string) => void;
+  onUpdateStatus: (appId: string, status: string) => void;
 }
 
 export default function JobPortal({ jobs, profile, onApply, onUpdateStatus }: JobPortalProps) {
@@ -114,7 +114,7 @@ export default function JobPortal({ jobs, profile, onApply, onUpdateStatus }: Jo
                 </button>
               ) : (
                 <button
-                  onClick={() => onApply(selectedJob.company, selectedJob.role)}
+                  onClick={() => onApply(selectedJob.id)}
                   className="w-full py-2.5 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/10 transition flex items-center justify-center gap-1.5"
                 >
                   <Send className="h-3.5 w-3.5" /> Apply to Position Now

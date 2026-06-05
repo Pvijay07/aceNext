@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Terminal, RefreshCw, Send, Play, Sparkles, HelpCircle, Code, ShieldCheck } from "lucide-react";
-import { CodeChallenge, UserProfile } from "../types";
+import { CodeChallenge, UserProfile } from "../../types";
+import { api } from "../../api";
 
 interface CodingArenaProps {
   challenges: CodeChallenge[];
@@ -42,27 +43,15 @@ export default function CodingArena({ challenges, profile, focusMode, onTrackPro
     setIsRunning(true);
     setConsoleOutput(`[AceNext Compiler: Initializing ${selectedLanguage} workspace...]`);
     try {
-      const response = await fetch("/api/grader/code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await api.post("/coding/submit", {
+          challenge_id: activeChallenge.id,
           code: sourceCode,
-          language: selectedLanguage,
-          context: {
-            id: activeChallenge.id,
-            title: activeChallenge.title,
-            description: activeChallenge.problem
-          }
-        })
+          language: selectedLanguage
       });
-      const data = await response.json();
-      setConsoleOutput(data.output);
+      setConsoleOutput(data.submission.error_log || "Compilation successful. All tests passed.");
 
-      if (data.score) {
-        setAiScore(data.score);
-      }
-      if (data.suggestions) {
-        setSuggestions(data.suggestions);
+      if (data.submission.status === 'passed') {
+        setAiScore(100);
       }
     } catch (e) {
       console.error(e);
