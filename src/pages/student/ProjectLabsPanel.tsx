@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FolderGit2, Sparkles, RefreshCw, Star, CheckSquare, Target, Github, AlertCircle } from "lucide-react";
 import { ProjectLab, UserProfile } from "../../types";
+import { api } from "../../api";
+
 
 interface ProjectLabsPanelProps {
   labs: ProjectLab[];
@@ -21,19 +23,14 @@ export default function ProjectLabsPanel({ labs = [], profile, focusMode, onTrac
     if (!gitUrl.trim()) return;
     setIsEvaluating(true);
     try {
-      const response = await fetch("/api/grader/code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: `Repo Submitted: ${gitUrl}\nLab title: ${selectedLab.title}`,
-          language: "Full Stack Structure Review",
-          context: {
-            title: selectedLab.title,
-            description: selectedLab.description
-          }
-        })
+      const data = await api.post("/grader/code", {
+        code: `Repo Submitted: ${gitUrl}\nLab title: ${selectedLab.title}`,
+        language: "Full Stack Structure Review",
+        context: {
+          title: selectedLab.title,
+          description: selectedLab.description
+        }
       });
-      const data = await response.json();
       setReviewResult(data.review);
       if (data.score) setEvalScore(data.score);
       if (data.suggestions) setFeedbackBullets(data.suggestions);

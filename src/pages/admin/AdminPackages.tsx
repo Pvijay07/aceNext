@@ -1,16 +1,54 @@
-import React, { useState } from "react";
-import { Plus, Package, Check, X, Edit2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Package, RefreshCw } from "lucide-react";
+import { api } from "../../api";
+
+const mockPackages = [
+  { id: "P-01", name: "Job Placement Guarantee", price: "₹25,000", users: 145, active: true },
+  { id: "P-02", name: "1-on-1 Mentorship (Monthly)", price: "₹5,000/mo", users: 89, active: true },
+  { id: "P-03", name: "Resume & Portfolio Review", price: "₹2,500", users: 210, active: true },
+  { id: "P-04", name: "Premium Mock Interviews", price: "₹4,000", users: 0, active: false },
+];
 
 export default function AdminPackages() {
-  const [packages, setPackages] = useState([
-    { id: "P-01", name: "Job Placement Guarantee", price: "₹25,000", users: 145, active: true },
-    { id: "P-02", name: "1-on-1 Mentorship (Monthly)", price: "₹5,000/mo", users: 89, active: true },
-    { id: "P-03", name: "Resume & Portfolio Review", price: "₹2,500", users: 210, active: true },
-    { id: "P-04", name: "Premium Mock Interviews", price: "₹4,000", users: 0, active: false },
-  ]);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPackages = () => {
+    setLoading(true);
+    api.get("/packages")
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPackages(data.map((p: any) => ({
+            id: p.id?.toString() || p.package_id,
+            name: p.name || p.title,
+            price: p.price_display || (p.price ? `₹${p.price.toLocaleString()}` : "—"),
+            users: p.subscribers_count ?? p.users ?? 0,
+            active: p.active ?? p.is_active ?? true,
+          })));
+        } else {
+          setPackages(mockPackages);
+        }
+      })
+      .catch(() => {
+        console.warn("Using mock data for packages.");
+        setPackages(mockPackages);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchPackages(); }, []);
 
   const toggleStatus = (id: string) => {
-    setPackages(packages.map(p => p.id === id ? { ...p, active: !p.active } : p));
+    const pkg = packages.find(p => p.id === id);
+    if (!pkg) return;
+
+    setPackages(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p));
+
+    api.put(`/packages/${id}/status`, { active: !pkg.active })
+      .catch(() => {
+        // Revert if API fails (optional, for now keep optimistic)
+        console.warn("Package status update not saved to backend.");
+      });
   };
 
   return (
@@ -20,37 +58,50 @@ export default function AdminPackages() {
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Add-on Packages</h2>
           <p className="text-sm text-slate-500 mt-1">Manage supplementary services and premium upgrades for students.</p>
         </div>
-        <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Create Package
-        </button>
+        <div className="flex gap-2">
+          <button onClick={fetchPackages} className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition" title="Refresh">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition shadow-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Create Package
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packages.map((pkg) => (
-          <div key={pkg.id} className={`bg-white border rounded-2xl p-6 transition-all relative ${pkg.active ? 'border-slate-200 shadow-sm' : 'border-slate-100 opacity-60'}`}>
-            <div className="flex justify-between items-start mb-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${pkg.active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                <Package className="w-6 h-6" />
+      {loading ? (
+        <div className="p-12 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {packages.map((pkg) => (
+            <div key={pkg.id} className={`bg-white border rounded-2xl p-6 transition-all relative ${pkg.active ? 'border-slate-200 shadow-sm' : 'border-slate-100 opacity-60'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${pkg.active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+                  <Package className="w-6 h-6" />
+                </div>
+                <button
+                  onClick={() => toggleStatus(pkg.id)}
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border transition-colors ${
+                    pkg.active
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
+                      : 'text-slate-500 bg-slate-50 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
+                  }`}
+                >
+                  {pkg.active ? 'Active (Click to Disable)' : 'Disabled (Enable)'}
+                </button>
               </div>
-              <button 
-                onClick={() => toggleStatus(pkg.id)}
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border transition-colors ${pkg.active ? 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200' : 'text-slate-500 bg-slate-50 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'}`}
-              >
-                {pkg.active ? 'Active (Click to Disable)' : 'Disabled (Click to Enable)'}
-              </button>
+              <h3 className="font-bold text-lg text-slate-900 mb-1">{pkg.name}</h3>
+              <p className="text-2xl font-black text-slate-900 mb-4">{pkg.price}</p>
+              <div className="bg-slate-50 rounded-lg p-3 flex justify-between items-center text-sm font-medium">
+                <span className="text-slate-500">Active Subscribers:</span>
+                <span className="text-slate-900 font-bold">{pkg.users}</span>
+              </div>
             </div>
-            
-            <h3 className="font-bold text-lg text-slate-900 mb-1">{pkg.name}</h3>
-            <p className="text-2xl font-black text-slate-900 mb-4">{pkg.price}</p>
-            
-            <div className="bg-slate-50 rounded-lg p-3 flex justify-between items-center text-sm font-medium">
-              <span className="text-slate-500">Active Subscribers:</span>
-              <span className="text-slate-900 font-bold">{pkg.users}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

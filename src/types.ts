@@ -10,7 +10,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: string; // student | mentor | admin
+  role: string; // student | faculty | admin | coordinator
   xp: number;
   streak: number;
   badges: Badge[];

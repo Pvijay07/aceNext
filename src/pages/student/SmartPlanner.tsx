@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Lightbulb
 } from "lucide-react";
+import { api } from "../../api";
+
 
 interface DeadlineItem {
   id: string;
@@ -166,20 +168,11 @@ export default function SmartPlanner({ onTrackXp }: SmartPlannerProps) {
     );
 
     try {
-      const response = await fetch("/api/planner/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          availability: { dailyHours, preferredTime, comments },
-          deadlines
-        })
-      });
+      const data = await api.post("/planner/generate", {
+        availability: { dailyHours, preferredTime, comments },
+        deadlines
+      }) as PlannerResponse;
 
-      if (!response.ok) {
-        throw new Error("API server reported planning calculations error.");
-      }
-
-      const data = (await response.json()) as PlannerResponse;
       setPlannerResult(data);
       // Reset completed checklist
       setCompletedItems({});

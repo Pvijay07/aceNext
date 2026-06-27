@@ -6,7 +6,7 @@ import {
   Book, Bot, Briefcase, Award, Settings, HelpCircle,
   Users, Layers, Calendar, BarChart, FileCheck, Target
 } from "lucide-react";
-import { UserProfile } from "../../types";
+import { UserProfile } from "../types";
 
 interface NavItem {
   id: string;
@@ -49,6 +49,15 @@ export default function DashboardLayout({ role, profile, onLogout }: DashboardLa
       { id: "students", label: "Students", icon: <Users className="w-5 h-5" /> },
       { id: "mock-interviews", label: "Mock Interviews", icon: <Target className="w-5 h-5" /> },
       { id: "classes", label: "Classes & Zoom", icon: <Video className="w-5 h-5" /> },
+    ];
+  } else if (role === "coordinator") {
+    navItems = [
+      { id: "dashboard", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
+      { id: "batches", label: "Batch Management", icon: <Calendar className="w-5 h-5" /> },
+      { id: "students", label: "Student List", icon: <Users className="w-5 h-5" /> },
+      { id: "attendance", label: "Attendance Tracker", icon: <FileCheck className="w-5 h-5" /> },
+      { id: "reports", label: "Activity Reports", icon: <BarChart className="w-5 h-5" /> },
+      { id: "counseling", label: "Counseling", icon: <MessageSquare className="w-5 h-5" /> },
     ];
   } else {
     // Default Student

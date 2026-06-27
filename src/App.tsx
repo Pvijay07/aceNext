@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Clock } from "lucide-react";
 
 // Shared
 import ConfettiCelebration from "./components/shared/ConfettiCelebration";
@@ -14,6 +15,7 @@ import AdminModules from "./pages/admin/AdminModules";
 import AdminBatches from "./pages/admin/AdminBatches";
 import AdminFaculty from "./pages/admin/AdminFaculty";
 import AdminPackages from "./pages/admin/AdminPackages";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 // Faculty
 import FacultyOverview from "./pages/faculty/FacultyOverview";
@@ -21,9 +23,19 @@ import FacultyLessons from "./pages/faculty/FacultyLessons";
 import FacultyEvaluation from "./pages/faculty/FacultyEvaluation";
 import FacultyZoom from "./pages/faculty/FacultyZoom";
 
+// Coordinator
+import CoordinatorDashboard from "./pages/coordinator/CoordinatorDashboard";
+import BatchManagement from "./pages/coordinator/BatchManagement";
+import CoordinatorStudents from "./pages/coordinator/CoordinatorStudents";
+import CoordinatorAttendance from "./pages/coordinator/CoordinatorAttendance";
+import CoordinatorReports from "./pages/coordinator/CoordinatorReports";
+import CoordinatorCounseling from "./pages/coordinator/CoordinatorCounseling";
+import CoordinatorSettings from "./pages/coordinator/CoordinatorSettings";
+
 // Student
 import Dashboard from "./pages/student/Dashboard";
 import LMSPanel from "./pages/student/LMSPanel";
+import LiveClassesList from "./pages/student/LiveClassesList";
 import TutorBot from "./pages/student/TutorBot";
 import CodingArena from "./pages/student/CodingArena";
 import Assessments from "./pages/student/Assessments";
@@ -31,6 +43,7 @@ import ProjectLabsPanel from "./pages/student/ProjectLabsPanel";
 import ResumeSpecs from "./pages/student/ResumeSpecs";
 import MockInterviewArena from "./pages/student/MockInterviewArena";
 import JobPortal from "./pages/student/JobPortal";
+
 
 // Data & Types
 import { initialCourses, mockChallenges, initialQuizzes, projectLabs, mockJobsList } from "./data";
@@ -92,11 +105,19 @@ export default function App() {
     try {
       const data = await api.get("/user");
       if (data && data.name) {
+        const rawRole = typeof data.role === 'string' ? data.role.toLowerCase() : (data.role?.name?.toLowerCase() || "student");
+        let normalizedRole = rawRole;
+        
+        // Normalize coordinator roles
+        if (rawRole.includes("coordinator") || rawRole.includes("co-ordinator")) {
+          normalizedRole = "coordinator";
+        }
+
         setProfile({
           id: data.id.toString(),
           name: data.name,
           email: data.email,
-          role: typeof data.role === 'string' ? data.role.toLowerCase() : (data.role?.name?.toLowerCase() || "student"),
+          role: normalizedRole,
           xp: data.xp || 0,
           streak: data.profile?.streak || 0,
           badges: [],
@@ -230,6 +251,19 @@ export default function App() {
     </div>
   );
 
+  const PlaceholderCoordinatorModule = ({ title, desc }: any) => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white rounded-2xl border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
+        <Clock className="w-8 h-8" />
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+      <p className="text-slate-500 max-w-md text-center mt-2">{desc}</p>
+      <button className="mt-6 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
+        Under Development
+      </button>
+    </div>
+  );
+
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -266,6 +300,7 @@ export default function App() {
           <Route path="batches" element={<AdminBatches />} />
           <Route path="faculty" element={<AdminFaculty />} />
           <Route path="packages" element={<AdminPackages />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
 
         {/* Faculty Routes */}
@@ -281,12 +316,24 @@ export default function App() {
           <Route path="mock-interviews" element={<PlaceholderFacultyModule title="Mock Interviews" desc="Schedule interviews." />} />
         </Route>
 
+        {/* Coordinator Routes */}
+        <Route path="/coordinator" element={profile.role === "coordinator" ? <DashboardLayout role="coordinator" profile={profile} onLogout={handleLogout} /> : <Navigate to={getRoleBasePath()} />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<CoordinatorDashboard />} />
+          <Route path="batches" element={<BatchManagement />} />
+          <Route path="students" element={<CoordinatorStudents />} />
+          <Route path="attendance" element={<CoordinatorAttendance />} />
+          <Route path="reports" element={<CoordinatorReports />} />
+          <Route path="counseling" element={<CoordinatorCounseling />} />
+          <Route path="settings" element={<CoordinatorSettings />} />
+        </Route>
+
         {/* Student Routes */}
         <Route path="/student" element={profile.role === "student" ? <DashboardLayout role="student" profile={profile} onLogout={handleLogout} /> : <Navigate to={getRoleBasePath()} />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard profile={profile} courses={courses} setActiveTab={(t) => navigate(`/student/${t}`)} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
-          <Route path="lms" element={<LMSPanel profile={profile} courses={courses} focusMode={focusMode} onTrackProgress={(les, xp) => handleTrackProgress(les, undefined, undefined, undefined, xp)} setActiveTab={(t) => navigate(`/student/${t}`)} />} />
-          <Route path="classes" element={<PlaceholderStudentModule title="Live Classes" desc="Your scheduled Zoom and Google Meet sessions will appear here." />} />
+          <Route path="lms" element={<LMSPanel profile={profile} courses={courses} focusMode={focusMode} onTrackProgress={(les, xp) => handleTrackProgress(les, undefined, undefined, undefined, xp)} />} />
+          <Route path="classes" element={<LiveClassesList courseId={courses[0]?.id || "c1"} />} />
           <Route path="recordings" element={<PlaceholderStudentModule title="Class Recordings" desc="Access previous lecture recordings and transcripts." />} />
           <Route path="tutor" element={<TutorBot profile={profile} courses={courses} focusMode={focusMode} onTrackXp={(xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />
           <Route path="coding" element={<CodingArena profile={profile} challenges={mockChallenges} focusMode={focusMode} onTrackProgress={(cId, xp) => handleTrackProgress(undefined, undefined, undefined, undefined, xp)} />} />

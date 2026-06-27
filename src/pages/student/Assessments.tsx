@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { ListChecks, Flame, HelpCircle, RefreshCw, Zap, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { QuizQuestion, UserProfile } from "../../types";
+import { api } from "../../api";
+
 
 interface AssessmentsProps {
   initialQuizzes: QuizQuestion[];
@@ -53,12 +55,7 @@ export default function Assessments({ initialQuizzes, profile, focusMode, onTrac
     if (!customTopic.trim()) return;
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/quiz/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: customTopic, size: 3 })
-      });
-      const data = await response.json();
+      const data = await api.post("/quiz/generate", { topic: customTopic, size: 3 });
       if (Array.isArray(data) && data.length > 0) {
         // Appends new questions with generated IDs
         const normalized = data.map((q: any, i: number) => ({

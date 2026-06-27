@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:8000/api';
+
 
 export const api = {
     async get(endpoint: string) {

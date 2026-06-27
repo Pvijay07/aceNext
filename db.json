@@ -1,0 +1,335 @@
+{
+  "users": [
+    {
+      "id": "student-1",
+      "name": "Vijay Kumar",
+      "email": "student@acenext.com",
+      "password": "password",
+      "role": "student",
+      "status": "active",
+      "xp": 1450,
+      "streak": 5,
+      "badges": []
+    },
+    {
+      "id": "admin-1",
+      "name": "Admin User",
+      "email": "admin@acenext.com",
+      "password": "password",
+      "role": "admin",
+      "status": "active"
+    },
+    {
+      "id": "coordinator-1",
+      "name": "Coordinator User",
+      "email": "coordinator@acenext.com",
+      "password": "password",
+      "role": "coordinator",
+      "status": "active"
+    },
+    {
+      "id": "faculty-1",
+      "name": "John Doe",
+      "email": "faculty@acenext.com",
+      "password": "password",
+      "role": "faculty",
+      "status": "active",
+      "phone": "9876543210",
+      "qualification": "M.Tech in CS",
+      "specialization": "Frontend Technologies",
+      "experience": "5+ Years",
+      "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150"
+    },
+    {
+      "id": "faculty-2",
+      "name": "Jane Smith",
+      "email": "faculty2@acenext.com",
+      "password": "password",
+      "role": "faculty",
+      "status": "active",
+      "phone": "9876543211",
+      "qualification": "PhD in AI",
+      "specialization": "Backend & Systems",
+      "experience": "8+ Years",
+      "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150"
+    }
+  ],
+  "courses": [
+    {
+      "id": "c1",
+      "category": "Frontend Development",
+      "title": "Mastering React 19 & Tailwind v4",
+      "description": "Learn state synchronization, concurrent rendering features, functional clean architectures, and modern Tailwind layouts.",
+      "thumbnail_url": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+      "price": 15000,
+      "duration": "12 Weeks",
+      "status": "published",
+      "mentor_id": "faculty-1",
+      "learning_outcomes": [
+        "State synchronization",
+        "Vite build configuration",
+        "React 19 Hooks"
+      ],
+      "modules": [
+        {
+          "id": "m1_1",
+          "title": "Module 1: React 19 Ecosystem & Hooks",
+          "order_no": 1,
+          "description": "Introduction to core rendering features",
+          "lessons": [
+            {
+              "id": "l1",
+              "title": "Lesson 1: Introduction to React 19 Core States",
+              "duration": "12 mins",
+              "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+              "topic": "React hooks state management"
+            },
+            {
+              "id": "l2",
+              "title": "Lesson 2: Optimizing Render Loops with useMemo & Refs",
+              "duration": "18 mins",
+              "videoUrl": "https://www.w3schools.com/html/movie.mp4",
+              "topic": "Optimizing render loops"
+            }
+          ]
+        },
+        {
+          "id": "m1_2",
+          "title": "Module 2: Advanced Tailwind CSS Layouts",
+          "order_no": 2,
+          "description": "Modern grids, flexbox, and clamped text typography",
+          "lessons": [
+            {
+              "id": "l3",
+              "title": "Lesson 3: Custom Theme Rules and Dynamic Clamping",
+              "duration": "15 mins",
+              "pdfUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+              "topic": "Dynamic Tailwind styling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "category": "Backend Development",
+      "title": "High Performance RESTful APIs with Node & Express",
+      "description": "Master server design, lazy SDK initialization, security headers, database isolation levels, and Redis caching.",
+      "thumbnail_url": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+      "price": 12000,
+      "duration": "10 Weeks",
+      "status": "published",
+      "mentor_id": "faculty-2",
+      "learning_outcomes": [
+        "Express middleware coding",
+        "SQL isolation levels",
+        "Redis integrations"
+      ],
+      "modules": [
+        {
+          "id": "m2_1",
+          "title": "Module 1: Server Initialization & Middleware Design",
+          "order_no": 1,
+          "description": "Structuring routes, CORS and helmet parameters",
+          "lessons": [
+            {
+              "id": "l4",
+              "title": "Lesson 1: Setting up robust Express routing",
+              "duration": "20 mins",
+              "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+              "topic": "Express routing and server architecture"
+            },
+            {
+              "id": "l5",
+              "title": "Lesson 2: Security principles and CORS constraints",
+              "duration": "14 mins",
+              "topic": "Web security headers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "title": "next js",
+      "slug": "next-js",
+      "description": "next js course",
+      "thumbnail_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
+      "price": 15000,
+      "duration": "12 Weeks",
+      "status": "published",
+      "mentor_id": "faculty-1",
+      "learning_outcomes": [],
+      "modules": []
+    }
+  ],
+  "batches": [
+    {
+      "id": "b1",
+      "name": "Frontend Intensive",
+      "course_id": "c1",
+      "faculty_id": "faculty-1",
+      "start_date": "2026-02-10",
+      "end_date": "2026-05-10",
+      "capacity": 50,
+      "status": "Ongoing",
+      "delay_reason": "",
+      "expected_completion_date": "2026-05-10"
+    },
+    {
+      "id": "b2",
+      "name": "Fullstack Mastery",
+      "course_id": "c2",
+      "faculty_id": "faculty-2",
+      "start_date": "2026-03-15",
+      "end_date": "2026-06-15",
+      "capacity": 40,
+      "status": "Ongoing",
+      "delay_reason": "",
+      "expected_completion_date": "2026-06-15"
+    },
+    {
+      "id": "b3",
+      "name": "full",
+      "course_id": "c1",
+      "faculty_id": "faculty-1",
+      "start_date": "2026-06-19",
+      "end_date": "2026-09-17",
+      "capacity": 30,
+      "status": "Starting Soon",
+      "delay_reason": "",
+      "expected_completion_date": "2026-09-17"
+    },
+    {
+      "id": "b4",
+      "name": "g",
+      "course_id": "c1",
+      "faculty_id": "faculty-1",
+      "start_date": "2026-06-19",
+      "end_date": "2026-09-17",
+      "capacity": 30,
+      "status": "Starting Soon",
+      "delay_reason": "",
+      "expected_completion_date": "2026-09-17"
+    }
+  ],
+  "batch_students": [
+    {
+      "batch_id": "b1",
+      "student_id": "student-1",
+      "status": "enrolled"
+    }
+  ],
+  "admissions": [
+    {
+      "id": "adm-1",
+      "student_name": "Vijay Kumar",
+      "email": "student@acenext.com",
+      "phone": "9876543219",
+      "qualification": "B.Tech IT",
+      "course_id": "c1",
+      "status": "Approved",
+      "document_url": "docs/marksheet.pdf",
+      "admission_date": "2026-02-01"
+    },
+    {
+      "id": "adm-2",
+      "student_name": "Rohan Das",
+      "email": "rohan@gmail.com",
+      "phone": "9988776655",
+      "qualification": "BCA",
+      "course_id": "c2",
+      "status": "Pending",
+      "document_url": "docs/marksheet2.pdf",
+      "admission_date": "2026-06-10"
+    }
+  ],
+  "live_classes": [
+    {
+      "id": "lc-1",
+      "batch_id": "b1",
+      "topic": "React 19 Ecosystem & Hooks Deep Dive",
+      "date": "2026-06-19",
+      "start_time": "10:00 AM",
+      "meeting_link": "https://zoom.us/j/123456789",
+      "recording_url": "https://www.w3schools.com/html/mov_bbb.mp4"
+    }
+  ],
+  "class_attendance": [
+    {
+      "live_class_id": "lc-1",
+      "student_id": "student-1",
+      "status": "Present"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "as-1",
+      "batch_id": "b1",
+      "title": "Two Sum Target Index Finder",
+      "description": "Write an optimized O(N) solution to find target indices.",
+      "deadline": "2026-06-25T18:00:00.000Z"
+    }
+  ],
+  "assignment_submissions": [
+    {
+      "id": "sub-1",
+      "assignment_id": "as-1",
+      "student_id": "student-1",
+      "text_answer": "function twoSum(nums, target) { ... }",
+      "file_path": "",
+      "file_type": "javascript",
+      "ai_score": 85,
+      "ai_feedback": "Excellent solution! Very clean.",
+      "faculty_score": null,
+      "faculty_feedback": ""
+    }
+  ],
+  "job_postings": [
+    {
+      "id": "job-1",
+      "company_name": "Google",
+      "logo": "https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=100",
+      "job_title": "Frontend Developer Intern",
+      "salary_package": "₹45,000 / month",
+      "required_skills": "React, Tailwind, JavaScript",
+      "experience_required": "Internship",
+      "last_date": "2026-07-01",
+      "status": "Active"
+    },
+    {
+      "id": "job-2",
+      "company_name": "Stripe",
+      "logo": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100",
+      "job_title": "Junior Software Engineer - APIs",
+      "salary_package": "₹1,200,000 / year",
+      "required_skills": "Node.js, Express, SQL",
+      "experience_required": "0-1 Years",
+      "last_date": "2026-07-15",
+      "status": "Active"
+    }
+  ],
+  "job_applications": [
+    {
+      "id": "app-1",
+      "job_posting_id": "job-1",
+      "student_id": "student-1",
+      "resume_path": "resumes/vijay_resume.pdf",
+      "status": "Applied",
+      "remarks": "Applied on portal",
+      "offer_letter_path": "",
+      "joining_doc_path": "",
+      "applied_date": "2026-06-01"
+    }
+  ],
+  "inactive_students_follow_up": [
+    {
+      "id": "f-1",
+      "student_id": "student-1",
+      "last_active_date": "2026-06-18",
+      "contact_status": "Pending",
+      "remarks": "Has low attendance this week",
+      "follow_up_date": "2026-06-20"
+    }
+  ]
+}

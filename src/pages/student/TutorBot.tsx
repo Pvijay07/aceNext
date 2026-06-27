@@ -60,69 +60,29 @@ export default function TutorBot({
     setInput("");
 
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:8000/api/tutor/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/event-stream",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const data = await api.post("/tutor/chat", {
+        messages: [...messages, userMsg].filter(
+          (m) => m.content.trim() !== "",
+        ),
+        context: {
+          courseName: courses[0]?.title,
+          lessonTitle: "Interactive Doubt Solving",
+          topic: textToSend,
         },
-        body: JSON.stringify({
-          messages: [...messages, userMsg].filter(
-            (m) => m.content.trim() !== "",
-          ),
-          context: {
-            courseName: courses[0]?.title,
-            lessonTitle: "Interactive Doubt Solving",
-            topic: textToSend,
-          },
-        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastIndex = newMessages.length - 1;
+        newMessages[lastIndex] = {
+          role: "model",
+          content: data.content || "No response received.",
+        };
+        return newMessages;
+      });
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder("utf-8");
-
-      if (reader) {
-        setIsLoading(false); // Hide the generic loading pulse once streaming starts
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
-
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.substring(6).trim();
-              if (dataStr === "[DONE]" || !dataStr) continue;
-
-              try {
-                const data = JSON.parse(dataStr);
-                const textChunk =
-                  data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (textChunk) {
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    const lastIndex = newMessages.length - 1;
-                    newMessages[lastIndex] = {
-                      ...newMessages[lastIndex],
-                      content: newMessages[lastIndex].content + textChunk,
-                    };
-                    return newMessages;
-                  });
-                }
-              } catch (e) {
-                console.error("Error parsing stream chunk", e, dataStr);
-              }
-            }
-          }
-        }
+      if (data.suggestedQuestions) {
+        setSuggestedQuestions(data.suggestedQuestions);
       }
 
       onTrackXp(10);
@@ -134,6 +94,7 @@ export default function TutorBot({
           "Oops! I hit a routing buffer. Please check if your server is running.";
         return newMessages;
       });
+    } finally {
       setIsLoading(false);
     }
   };

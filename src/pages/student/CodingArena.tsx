@@ -64,20 +64,15 @@ export default function CodingArena({ challenges, profile, focusMode, onTrackPro
   const getAiReview = async () => {
     setIsReviewing(true);
     try {
-      const response = await fetch("/api/grader/code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: sourceCode,
-          language: selectedLanguage,
-          context: {
-            id: activeChallenge.id,
-            title: activeChallenge.title,
-            description: activeChallenge.problem
-          }
-        })
+      const data = await api.post("/grader/code", {
+        code: sourceCode,
+        language: selectedLanguage,
+        context: {
+          id: activeChallenge.id,
+          title: activeChallenge.title,
+          description: activeChallenge.problem
+        }
       });
-      const data = await response.json();
       setReviewResult(data.review);
       if (data.score) setAiScore(data.score);
       if (data.suggestions) setSuggestions(data.suggestions);

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { BrainCircuit, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { api } from "../../api";
+
 
 export default function AuthScreen({ onSuccess }: { onSuccess: () => void }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,22 +16,8 @@ export default function AuthScreen({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     setError("");
     try {
-      const endpoint = isLogin ? "/api/login" : "/api/register";
       const body = isLogin ? { email, password } : { name, email, password };
-      
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json" 
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || "Authentication failed");
-      }
+      const data = await api.post(isLogin ? '/login' : '/register', body);
       
       localStorage.setItem("access_token", data.access_token);
       onSuccess();
@@ -39,6 +27,7 @@ export default function AuthScreen({ onSuccess }: { onSuccess: () => void }) {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">

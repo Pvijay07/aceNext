@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Play, FileText, CheckCircle, Brain, RefreshCw, PenTool, CheckCircle2 } from "lucide-react";
 import { Course, UserProfile } from "../../types";
+import { api } from "../../api";
+
 
 interface LMSPanelProps {
   courses: Course[];
@@ -62,21 +64,16 @@ export default function LMSPanel({ courses, profile, focusMode, onTrackProgress 
     if (!studentNote.trim()) return;
     setIsSummarizing(true);
     try {
-      const response = await fetch("/api/tutor/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            { role: "user", content: `Please summarize these raw course notes into a high-impact, professional technical checklist. Raw notes:\n\n${studentNote}` }
-          ],
-          context: {
-            courseName: selectedCourse.title,
-            lessonTitle: activeLesson.title,
-            topic: activeLesson.topic
-          }
-        })
+      const data = await api.post("/tutor/chat", {
+        messages: [
+          { role: "user", content: `Please summarize these raw course notes into a high-impact, professional technical checklist. Raw notes:\n\n${studentNote}` }
+        ],
+        context: {
+          courseName: selectedCourse.title,
+          lessonTitle: activeLesson.title,
+          topic: activeLesson.topic
+        }
       });
-      const data = await response.json();
       setAiSummary(data.content);
       // Reward XP for dynamic active study notes
       onTrackProgress(activeLesson.id, 25);

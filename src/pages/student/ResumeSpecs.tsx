@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FileText, Sparkles, RefreshCw, Star, HelpCircle, Check, BookOpen, Printer, Download } from "lucide-react";
 import { UserProfile } from "../../types";
+import { api } from "../../api";
+
 
 interface ResumeSpecsProps {
   profile: UserProfile;
@@ -23,19 +25,14 @@ export default function ResumeSpecs({ profile, focusMode, onTrackXp }: ResumeSpe
   const analyzeCV = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/resume/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeData: {
-            skills,
-            education: edu,
-            experience: exp,
-            projects
-          }
-        })
+      const data = await api.post("/resume/review", {
+        resumeData: {
+          skills,
+          education: edu,
+          experience: exp,
+          projects
+        }
       });
-      const data = await response.json();
       setAtsScore(data.atsScore);
       setCritique(data.summary);
       setMissingKeys(data.missingKeywords || []);
